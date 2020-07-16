@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import *
+from datetime import date
+import pickle
 import time
 
 class StopWatch(Frame):
@@ -9,12 +11,18 @@ class StopWatch(Frame):
 		self.lapsed_time = 0.0
 		self.running = False
 		self.time_string = StringVar()
+		self.category = StringVar()
 		self.make_label()
 
 	def make_label(self):
+		# label for time 
 		label = Label(self, textvariable=self.time_string)
 		self.set_time()
 		label.pack(fill=X,expand=NO, pady=2, padx=2)
+
+		# entry for user input
+		entry = Entry(self, textvariable=self.category)
+		entry.pack()
 
 
 	def update(self):
@@ -47,21 +55,57 @@ class StopWatch(Frame):
 			self.running = False
 
 	def reset(self):
-		"""Reset the time"""
+		"""Resets the time"""
+		self.stop()
 		self.start = time.time()
+
+		# retrieve what user was working on from the Entry
 		if self.lapsed_time > 0 :
-			print(self.lapsed_time)
+			self.log_activity()
+
+		# reset time & input box
 		self.lapsed_time = 0.0
+		self.category.set("")
 		self.set_time()
+
+	def log_activity(self):
+		"""Store time of split & what was done"""
+
+		# load the dictionary
+		try:
+			with open('data/data.pkl', 'rb') as pickle_in:
+				all_days = pickle.load(pickle_in, encoding='bytes')
+				print("DICTIONARY:", all_days)
+		except EOFError:
+			all_days = {str(date.today()): [[self.lapsed_time, self.category.get()]]}
+			with open('data/data.pkl', 'wb') as pickle_out:
+				pickle.dump(all_days, pickle_out)
+
+		curr_date = str(date.today())
+		if curr_date in all_days:
+			# add to existing list
+			all_days[curr_date].append([self.lapsed_time, self.category.get()])
+		else:
+			# make new entry
+			all_days[curr_date] = [self.lapsed_time, self.category.get()]
+
+		# save the dictionary
+		with open('data/data.pkl', 'wb') as pickle_out:
+			pickle.dump(all_days, pickle_out)
+
+		# print(date.today(), round(self.lapsed_time, 3), self.category.get())
 
 def main():
 	window = tk.Tk()
 	stopwatch = StopWatch(window)
 	stopwatch.pack()
+
+	# Buttons
 	Button(window,text='Start',command=stopwatch.start_watch).pack(side=LEFT)
 	Button(window,text='Stop',command=stopwatch.stop).pack(side=LEFT)
 	Button(window,text='Reset',command=stopwatch.reset).pack(side=LEFT)
 	Button(window,text='Exit',command=window.quit).pack(side=LEFT)
+
 	window.mainloop()
 
 if __name__ == '__main__':
