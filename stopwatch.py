@@ -49,6 +49,8 @@ class StopWatch(Frame):
 	def reset(self):
 		"""Reset the time"""
 		self.start = time.time()
+		if self.lapsed_time > 0 :
+			print(self.lapsed_time)
 		self.lapsed_time = 0.0
 		self.set_time()
 
@@ -59,7 +61,7 @@ def main():
 	Button(window,text='Start',command=stopwatch.start_watch).pack(side=LEFT)
 	Button(window,text='Stop',command=stopwatch.stop).pack(side=LEFT)
 	Button(window,text='Reset',command=stopwatch.reset).pack(side=LEFT)
-	Button(window,text='Log',command=window.quit).pack(side=LEFT)
+	Button(window,text='Exit',command=window.quit).pack(side=LEFT)
 	window.mainloop()
 
 if __name__ == '__main__':
