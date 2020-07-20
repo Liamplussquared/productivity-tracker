@@ -3,22 +3,33 @@ from tkinter import *
 from datetime import date
 import pickle
 import time
+from time_info import Display
 
 class StopWatch(Frame):
 	def __init__(self, parent=None, **kw):
 		Frame.__init__(self, parent, **kw)
+		# variables for managing running of clock
 		self.start = 0.0
 		self.lapsed_time = 0.0
 		self.running = False
+		# store time spent on current task
 		self.time_string = StringVar()
+		# store time spent today
+		self.dsp = Display()
+		self.day_time = self.dsp.get_daily_time()
+		self.day_string = StringVar()
+		# user inputted category
 		self.category = StringVar()
 		self.make_label()
 
 	def make_label(self):
-		# label for time 
+		# label for time spent on current task 
 		label = Label(self, textvariable=self.time_string)
+		day_label = Label(self,textvariable=self.day_string)
+
 		self.set_time()
 		label.pack(fill=X,expand=NO, pady=2, padx=2)
+		day_label.pack()
 
 		# entry for user input
 		entry = Entry(self, textvariable=self.category)
@@ -33,11 +44,15 @@ class StopWatch(Frame):
 
 	def set_time(self):
 		"""Sets the time on the stopwatch"""
-		hours = int(self.lapsed_time/3600)
-		minutes = int(self.lapsed_time/60)
-		seconds = int(self.lapsed_time - minutes*60.0)
-		msecs = int((self.lapsed_time - minutes*60.0 -seconds)*100)
-		self.time_string.set('%02d:%02d:%02d:%02d' % (hours, minutes, seconds, msecs))
+		self.day_string.set(self.convert_time(self.day_time + self.lapsed_time))
+		self.time_string.set(self.convert_time(self.lapsed_time))
+
+	def convert_time(self, time_dur):
+		hours = int(time_dur/3600)
+		minutes = int(time_dur/60)
+		seconds = int(time_dur - minutes*60.0)
+		msecs = int((time_dur - minutes*60.0 -seconds)*100)
+		return ('%02d:%02d:%02d:%02d' % (hours, minutes, seconds, msecs))
 
 	def start_watch(self):
 		"""Starts the timer, ignored if already running"""
@@ -59,6 +74,8 @@ class StopWatch(Frame):
 		self.stop()
 		self.start = time.time()
 
+		self.day_time += self.lapsed_time
+
 		# retrieve what user was working on from the Entry
 		if self.lapsed_time > 0 :
 			self.log_activity()
@@ -70,16 +87,16 @@ class StopWatch(Frame):
 
 	def log_activity(self):
 		"""Store time of split & what was done"""
-
 		# load the dictionary
 		try:
-			with open('data/data.pkl', 'rb') as pickle_in:
+			with open('../data/data.pkl', 'rb') as pickle_in:
 				all_days = pickle.load(pickle_in, encoding='bytes')
 				print("DICTIONARY:", all_days)
 		except EOFError:
 			all_days = {str(date.today()): [[self.lapsed_time, self.category.get()]]}
-			with open('data/data.pkl', 'wb') as pickle_out:
+			with open('../data/data.pkl', 'wb') as pickle_out:
 				pickle.dump(all_days, pickle_out)
+			return
 
 		curr_date = str(date.today())
 		if curr_date in all_days:
@@ -90,7 +107,7 @@ class StopWatch(Frame):
 			all_days[curr_date] = [self.lapsed_time, self.category.get()]
 
 		# save the dictionary
-		with open('data/data.pkl', 'wb') as pickle_out:
+		with open('../data/data.pkl', 'wb') as pickle_out:
 			pickle.dump(all_days, pickle_out)
 
 		# print(date.today(), round(self.lapsed_time, 3), self.category.get())
