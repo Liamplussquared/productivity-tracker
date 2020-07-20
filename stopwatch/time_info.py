@@ -7,21 +7,29 @@ from datetime import date
 
 class Display():
 	def __init__(self):
-		self.infile = open('../data/data.pkl', 'rb')
-		self.days_dict = pickle.load(self.infile)
-		self.daily_time = self.get_daily_time()
+		self.empty = False
+		try:
+			self.infile = open('../data/data.pkl', 'rb')
+			self.days_dict = pickle.load(self.infile)
+			self.daily_time = self.get_daily_time()
+		except EOFError:
+			self.empty = True
+			self.daily_time = "00:00:00:00"
 
 
 	def get_daily_time(self):
 		""" This function retrieves the total time spent on the current date """
-		_day_time = 0
-		_curr_date = str(date.today())
-		_day_items = self.days_dict[_curr_date]
+		if not self.empty:
+			_day_time = 0
+			_curr_date = str(date.today())
+			_day_items = self.days_dict[_curr_date]
 
-		for item in _day_items:
-			_day_time += item[0]
+			for item in _day_items:
+				_day_time += item[0]
 
-		return _day_time
+			return _day_time
+		else:
+			return 0.0
 
 	def convert_time(self, day_time):
 		""" Convert to standard time used """
