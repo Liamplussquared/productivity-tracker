@@ -4,38 +4,29 @@ Methods for displaying time spent daily/weekly working.
 import pickle
 import os
 import datetime
+import json
 
 class Display():
 	def __init__(self):
-		self.empty = False
-		try:
-			self.infile = open('../data/data.pkl', 'rb')
-			self.days_dict = pickle.load(self.infile)
-			self.daily_time = self.get_daily_time(str(datetime.date.today()))
-		except EOFError:
-			self.empty = True
-			self.daily_time = "00:00:00:00"
+		if not self.is_empty():
+			self.infile = open('../data/data.txt')
+			self.days_dict = json.load(self.infile)
+			print(self.days_dict)
 
+	def is_empty(self):
+		""" Checks if data.txt is empty"""
+		return os.stat('../data/data.txt').st_size == 0 
+		
 
 	def get_daily_time(self, curr_date):
 		""" This function retrieves the total time spent on the current date """
-		if not self.empty:
-			day_time = 0
-
+		total = 0.0
+		if not self.is_empty():
 			if curr_date in self.days_dict:
-				day_items = self.days_dict[curr_date]
-			else:
-				return 0.0
-
-			for item in day_items:
-				if isinstance(item, float):
-					day_time += item
-				else :
-					day_time += item[0]
-
-			return day_time
-		else:
-			return 0.0
+				lst = self.days_dict[curr_date]
+				for _ in lst:
+					total += _[0]
+		return total
 
 
 	def call_daily_time(self):
@@ -70,9 +61,4 @@ class Display():
 		msecs = int((day_time - minutes*60.0 - seconds)*100)
 		return ('%02d:%02d:%02d:%02d' % (hours, minutes, seconds, msecs))
 
-"""
-if __name__ == '__main__':
-	dsp = Display()
-	dsp.get_weekly_time()
-"""
 

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import *
 from datetime import date
-import pickle
+import json
 import time
 from time_info import Display
 
@@ -106,32 +106,35 @@ class StopWatch(Frame):
 		self.category.set("")
 		self.set_time()
 
+
 	def log_activity(self):
-		"""Store time of split & what was done"""
-		# load the dictionary
-		try:
-			with open('../data/data.pkl', 'rb') as pickle_in:
-				all_days = pickle.load(pickle_in, encoding='bytes')
-				print("DICTIONARY:", all_days)
-		except EOFError:
-			all_days = {str(date.today()): [[self.lapsed_time, self.category.get()]]}
-			with open('../data/data.pkl', 'wb') as pickle_out:
-				pickle.dump(all_days, pickle_out)
-			return
+		""" Writes split to a file"""
+		curr_day = str(date.today()) 
+		# file empty, need to create new dictionary & dump to file
+		if self.dsp.is_empty():
+			data = {curr_day : [[self.lapsed_time, self.category.get()]]}
 
-		curr_date = str(date.today())
-		if curr_date in all_days:
-			# add to existing list
-			all_days[curr_date].append([self.lapsed_time, self.category.get()])
-		else:
-			# make new entry
-			all_days[curr_date] = [self.lapsed_time, self.category.get()]
+			# write to file
+			with open('../data/data.txt', 'w') as outfile:
+				json.dump(data, outfile)
 
-		# save the dictionary
-		with open('../data/data.pkl', 'wb') as pickle_out:
-			pickle.dump(all_days, pickle_out)
+		# file not empty, append data accordingly
+		else: 
+			# read the data
+			with open('../data/data.txt') as json_file:
+				data = json.load(json_file)
 
-		# print(date.today(), round(self.lapsed_time, 3), self.category.get())
+			if curr_day in data:
+				data[curr_day].append([self.lapsed_time, self.category.get()])
+			else:
+				data[curr_day] = [[self.lapsed_time, self.category.get()]]
+
+			# dump data back into file
+			with open('../data/data.txt', 'w') as outfile:
+				json.dump(data, outfile)
+		
+
+
 
 def main():
 	window = tk.Tk()
