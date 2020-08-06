@@ -1,7 +1,7 @@
 import unittest
 import tkinter as tk
 import time
-from stopwatch import stopwatch
+from context import StopWatch, Display
 
 class TestSW(unittest.TestCase):
 	def setUp(self):

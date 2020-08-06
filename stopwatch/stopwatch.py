@@ -8,29 +8,47 @@ from time_info import Display
 class StopWatch(Frame):
 	def __init__(self, parent=None, **kw):
 		Frame.__init__(self, parent, **kw)
+
 		# variables for managing running of clock
 		self.start = 0.0
 		self.lapsed_time = 0.0
 		self.running = False
+
 		# store time spent on current task
 		self.time_string = StringVar()
+
 		# store time spent today
 		self.dsp = Display()
-		self.day_time = self.dsp.get_daily_time()
+		self.day_time = self.dsp.call_daily_time()
 		self.day_string = StringVar()
+
+		# store time spent this week
+		self.week_time = self.dsp.get_weekly_time()
+		self.week_string = StringVar()
+
 		# user inputted category
 		self.category = StringVar()
 		self.make_label()
 
 	def make_label(self):
-		# label for time spent on current task 
+		# labels for time spent in current split and daily total
 		label = Label(self, textvariable=self.time_string)
 		day_label = Label(self,textvariable=self.day_string)
+		week_label = Label(self,textvariable=self.week_string)
 
+		# change font, size of labels
+		week_label.config(font=("Courier", 8))
+		day_label.config(font=("Courier", 10))
+		label.config(font=("Courier", 12))
+
+		# initialise times
 		self.set_time()
-		label.pack(fill=X,expand=NO, pady=2, padx=2)
-		day_label.pack()
 
+		# pack the labels
+		week_label.pack(side = "top")
+		day_label.pack(side = "top")
+		label.pack(side = "top")
+	
 		# entry for user input
 		entry = Entry(self, textvariable=self.category)
 		entry.pack()
@@ -44,8 +62,9 @@ class StopWatch(Frame):
 
 	def set_time(self):
 		"""Sets the time on the stopwatch"""
-		self.day_string.set(self.convert_time(self.day_time + self.lapsed_time))
-		self.time_string.set(self.convert_time(self.lapsed_time))
+		self.week_string.set("Weekly time: " + self.convert_time(self.week_time + self.lapsed_time))
+		self.day_string.set("Today's time: " + self.convert_time(self.day_time + self.lapsed_time))
+		self.time_string.set("Current split: " + self.convert_time(self.lapsed_time))
 
 	def convert_time(self, time_dur):
 		hours = int(time_dur/3600)
@@ -74,6 +93,8 @@ class StopWatch(Frame):
 		self.stop()
 		self.start = time.time()
 
+		# update day & week time
+		self.week_time += self.lapsed_time
 		self.day_time += self.lapsed_time
 
 		# retrieve what user was working on from the Entry
@@ -114,14 +135,15 @@ class StopWatch(Frame):
 
 def main():
 	window = tk.Tk()
+	window.geometry("300x300")
 	stopwatch = StopWatch(window)
-	stopwatch.pack()
+	stopwatch.pack(expand=True)
 
 	# Buttons
-	Button(window,text='Start',command=stopwatch.start_watch).pack(side=LEFT)
-	Button(window,text='Stop',command=stopwatch.stop).pack(side=LEFT)
-	Button(window,text='Reset',command=stopwatch.reset).pack(side=LEFT)
-	Button(window,text='Exit',command=window.quit).pack(side=LEFT)
+	Button(window,text='Start',command=stopwatch.start_watch).pack(side="top", pady=5)
+	Button(window,text='Stop',command=stopwatch.stop).pack(side="top", pady=5)
+	Button(window,text='Reset',command=stopwatch.reset).pack(side="top", pady=5)
+	Button(window,text='Exit',command=window.quit).pack(side="top", pady=5)
 
 	window.mainloop()
 
